@@ -1,1 +1,11 @@
-#TODO core API initial design
+@startuml etajer_core_api
+'TODO #1 core API initial design
+!import products.wsd
+
+class ETajer {
+    users : Users
+    cataloge : Products
+    inventory : Inventory
+    carts : Carts
+    purchases : Purchases
+}

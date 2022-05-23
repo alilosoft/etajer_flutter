@@ -1,0 +1,21 @@
+@startuml products
+
+interface Product {
+    name : String
+    price : Money
+    qty : Qty
+    update(name, price, qty) : Product
+    delete() : boolean
+}
+
+interface Products {
+    create(name, price) : Product 
+    all(limit, offset) : Products
+    find(Criteria c) : Products
+}
+
+Products --|> Iterable
+Products o-- Product
+
+@enduml
+
