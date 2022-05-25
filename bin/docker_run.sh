@@ -1,9 +1,9 @@
 #!bin/bash
 
-echo 'stopping container named '$1' if exist'
+echo 'stopping container: '$1
 docker stop $1
 
-echo 'starting postgres container named: '$1' ...'
+echo 'starting container: '$1' ...'
 # start container in attached mode and parse the log to determine if the database started correctly
 docker run \
     --name $1 \
