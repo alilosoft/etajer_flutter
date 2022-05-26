@@ -43,7 +43,11 @@ Future<bool> startContainer({
   return Future.value(initOutStream.isCompleted && initErrStream.isCompleted);
 }
 
-//TODO: use pg_isready to make sure the server started instead of parsing the log. 
+//TODO: #2 use pg_isready to make sure the server started instead of parsing the log. 
 //docker exec -it pg-test pg_isready --timeout=5
 // output:  /var/run/postgresql:5432 - accepting connections
 //          /var/run/postgresql:5432 - no response
+
+//TODO: #3 add stopContainer(String name)
+
+// TODO: #4 make it OOP class Container { start(); stop(); }
