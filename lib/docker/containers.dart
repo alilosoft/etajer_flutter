@@ -1,10 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
-void main() async {
-  final started = await startContainer();
-  print('container started: $started ${started ? '😎' : '😥'}');
-}
 
 Future<bool> startContainer({String name = 'pg-test'}) async {
   final p = await Process.start(
@@ -14,24 +10,30 @@ Future<bool> startContainer({String name = 'pg-test'}) async {
     //mode: ProcessStartMode.detachedWithStdio,
   );
 
-  print('docker process pid: ${p.pid}');
+  Completer<bool> outStream = Completer();
+  Completer<bool> errStream = Completer();
 
-  p.stdout.any((e) {
-    final output = utf8.decode(e);
-    stdout.write(output);
-    if (output.contains('database system is ready to accept connections')) {
-      return false;
+  p.stdout.transform(utf8.decoder).any((line) {
+    stdout.write(line);
+    if (line.contains('PostgreSQL init process complete;')) {
+      outStream.complete(true);
     }
-    return false;
+    return outStream.isCompleted;
   });
-  final r = p.stderr.any((e) {
-    final output = utf8.decode(e);
-    stderr.write(output);
-    if (output.contains('database system is ready to accept connections')) {
-      return true;
+
+  p.stderr.transform(utf8.decoder).any((line) {
+    stderr.write(line);
+    if (line.contains('ready to accept connections')) {
+      errStream.complete(true);
     }
-    return false;
+    return errStream.isCompleted;
   });
-  //p.stdout.any((_) => true);
-  return r;
+
+  await outStream.future;
+  await errStream.future;
+
+  final killed = Process.killPid(p.pid);
+  print('process killed: $killed');
+
+  return Future.value(outStream.isCompleted && errStream.isCompleted);
 }
