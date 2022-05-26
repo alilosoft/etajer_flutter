@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-Future<bool> startContainer({String name = 'pg-test'}) async {
+Future<bool> startContainer({
+  String name = 'pg-test',
+  bool keepLogging = true,
+}) async {
   final p = await Process.start(
     'sh',
     ['docker_run.sh', name],
@@ -10,30 +13,32 @@ Future<bool> startContainer({String name = 'pg-test'}) async {
     //mode: ProcessStartMode.detachedWithStdio,
   );
 
-  Completer<bool> outStream = Completer();
-  Completer<bool> errStream = Completer();
-
+  final initOutStream = Completer<bool>();
   p.stdout.transform(utf8.decoder).any((line) {
     stdout.write(line);
     if (line.contains('PostgreSQL init process complete;')) {
-      outStream.complete(true);
+      initOutStream.complete(true);
     }
-    return outStream.isCompleted;
+    return keepLogging ? false : initOutStream.isCompleted;
   });
 
+  final initErrStream = Completer();
   p.stderr.transform(utf8.decoder).any((line) {
     stderr.write(line);
     if (line.contains('ready to accept connections')) {
-      errStream.complete(true);
+      initErrStream.complete(true);
     }
-    return errStream.isCompleted;
+    return keepLogging ? false : initErrStream.isCompleted;
   });
 
-  await outStream.future;
-  await errStream.future;
+  await initOutStream.future;
+  await initErrStream.future;
 
-  final killed = Process.killPid(p.pid);
-  print('process killed: $killed');
+  if (!keepLogging) {
+    final killed = Process.killPid(p.pid);
+    stdout.writeln('Killing process ${p.pid}...$killed');
+    stdout.writeln('The container $name will keep running in background');
+  }
 
-  return Future.value(outStream.isCompleted && errStream.isCompleted);
+  return Future.value(initOutStream.isCompleted && initErrStream.isCompleted);
 }
