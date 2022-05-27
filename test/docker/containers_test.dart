@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late bool started;
   setUp(() async {
-    started = await startContainer();
+    started = await startPgContainer();
     debugPrint('container started: $started ${started ? '😎' : '😥'}');
   });
 

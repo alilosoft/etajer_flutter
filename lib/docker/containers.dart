@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-Future<bool> startContainer({
+Future<bool> startPgContainer({
   String name = 'pg-test',
   bool keepLogging = true,
 }) async {
   final p = await Process.start(
     'sh',
-    ['docker_run.sh', name],
+    ['docker_run_pgsql.sh', name],
     workingDirectory: './bin',
     //mode: ProcessStartMode.detachedWithStdio,
   );
